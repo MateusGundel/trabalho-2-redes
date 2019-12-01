@@ -19,9 +19,11 @@ class ReceiverServer:
                     print("Connection from: " + str(addr))
                     full_data = conn.recv(1024).decode("utf-8")
 
+                    #Pega o usuário de origem do arquivo.
                     length = full_data.find("\n")
                     user = full_data[:length]
 
+                    #Pega o nome do arquivo.
                     filename = full_data[length + 1:]
                     length = filename.find("\n")
 

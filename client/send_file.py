@@ -15,4 +15,4 @@ class Sender:
                 s.sendall(file.read())
 
 
-Sender().send_file("teste.txt", 'gundel')
+# Sender().send_file("teste.txt", 'gundel')
