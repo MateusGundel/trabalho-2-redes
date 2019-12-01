@@ -1,3 +1,4 @@
+import os
 import socket
 
 
@@ -16,10 +17,19 @@ class ReceiverServer:
                 conn, addr = s.accept()
                 with conn:
                     print("Connection from: " + str(addr))
-                    filename = conn.recv(1024).decode("utf-8")
+                    full_data = conn.recv(1024).decode("utf-8")
+
+                    length = full_data.find("\n")
+                    user = full_data[:length]
+
+                    filename = full_data[length + 1:]
                     length = filename.find("\n")
 
-                    with open(filename[:length], 'wb') as file:
+                    save_path = "backup/" + user
+                    if not os.path.exists(save_path):
+                        os.makedirs(save_path)
+
+                    with open((save_path + "/" + filename[:length]), 'wb') as file:
                         data = filename[length + 1:].encode('utf-8')
                         while data:
                             file.write(data)
