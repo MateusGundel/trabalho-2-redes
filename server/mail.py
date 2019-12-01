@@ -1,7 +1,10 @@
 import smtplib
 
 class Mail:
-    def senMail(self, menssagem, destinatario):
+    def __init__(self):
+        pass
+    def sendMail(self, menssagem="um belo texto", destinatario="trickmartini@gmail.com"):
+        print('oi')
         gmail_user = 'trabalhoredes2019@gmail.com'
         gmail_password = 'trabalhoredes'
         Subject: "Modificações no arquivo"
@@ -14,3 +17,5 @@ class Mail:
             print("deu certo o envio do email")
         except:
             print('Deu ruim no envio do e-mail')
+
+Mail().sendMail()
