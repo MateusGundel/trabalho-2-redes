@@ -5,7 +5,7 @@ import socket
 
 
 class Messages:
-    def __init__(self, host="localhost", port=7777):
+    def __init__(self, host="localhost", port=2468):
         self.host = host
         self.port = port
 
