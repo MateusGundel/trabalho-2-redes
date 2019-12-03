@@ -51,10 +51,10 @@ if __name__ == "__main__":
                         datefmt='%Y-%m-%d %H:%M:%S')
     try:
         # path a ser monitorado
-        path = '/home/mateus.gundel/histograma'
+        path = '/home/mateus/update'
         # pasta de usuário
         user = 'default'
-        server_ip = 'google.com'
+        server_ip = '127.0.0.1'
 
         mapper = MappingFiles(path, user, server_ip)
 

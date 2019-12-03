@@ -45,13 +45,13 @@ class ReceiverServer:
                         logging.info(data)
                         local_structure = utils.files_to_dict(self.user_path)
                         logging.info(local_structure)
-                        self.find_excluded_files(data, local_structure, '')
+                        # self.find_excluded_files(data, local_structure, '')
                         self.find_wrong_files(conn, data, '')
                         logging.info("sync ended")
                     else:
                         logging.info("arquivos iguais, aguardando próximo sincronismo")
                     conn.sendall("ok".encode('utf-8'))
-
+                    logging.info("send OK")
     def request_data(self, conn, file, file_size):
         # realiza o request de um arquivo para o client
         logging.info("Requesting - " + file)
@@ -74,30 +74,39 @@ class ReceiverServer:
                     data = conn.recv(1024)
 
     def find_wrong_files(self, conn, client_structure, root):
+        logging.info(client_structure)
         # itera sobre as pastas para ver se elas já existem no servidor
         for item in client_structure:
+            logging.info(client_structure)
+            logging.info("iterando sobre")
+            logging.info(item)
             # Se for um dict, é uma pasta e eu preciso entrar nela para verificar
             if isinstance(client_structure[item], dict):
                 # se a pasta ainda não existir, cria ela
                 if not os.path.exists(os.path.join(self.user_path, root, item)):
                     os.makedirs(os.path.join(self.user_path, root, item))
                 # Entra nas pastas recursivamente
+                logging.info("iterando...")
                 self.find_wrong_files(conn, client_structure[item], os.path.join(root, item))
             # Se não é um dict, é um arquivo
             else:
                 # se já existe o arquivo ou o tamanho do arquivo é diferente do enviado
                 # requisita o arquivo ao client
+                logging.info("naaaao e dir")
                 if not os.path.exists(os.path.join(self.user_path, root, item)):
                     logging.info("Making request to file - " + root + "/" + item)
+                    logging.info("resquest file")
                     self.request_data(conn, os.path.join(root, item), client_structure[item])
                     self.info_sent_to_email.append(
                         "O arquivo - " + str(os.path.join(root, item)) + "foi criado em " + str(
-                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path))
+                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path) + "\n")
                 if os.path.getsize(os.path.join(self.user_path, root, item)) != client_structure[item]:
+                    logging.info("resquest file")
                     self.request_data(conn, os.path.join(root, item), client_structure[item])
+
                     self.info_sent_to_email.append(
                         "O arquivo - " + str(os.path.join(root, item)) + "foi alterado em " + str(
-                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path))
+                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path) + "\n")
 
     def find_excluded_files(self, client_structure, local_structure, root):
         # itera sobre a strutura de pastas
@@ -109,12 +118,12 @@ class ReceiverServer:
                 if os.path.isfile(path):
                     self.info_sent_to_email.append(
                         "O arquivo - " + str(path) + "foi excluído em " + str(
-                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path))
+                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path) + "\n")
                     os.remove(path)
                 else:
                     self.info_sent_to_email.append(
                         "A pasta - " + str(path) + "foi excluída em " + str(
-                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path))
+                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path) + "\n")
                     shutil.rmtree(path)
             else:
                 # se for um dir, tem que verificar dentro das pastas

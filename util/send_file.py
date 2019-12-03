@@ -13,8 +13,11 @@ class Messages:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.host, self.port))
 
+            logging.info("files send")
+            logging.info(data)
             # Manda a estrutura de pastas
             s.send(json.dumps({'data': data, 'user': user}).encode('utf-8'))
+
 
             # espera o server responder
             response = s.recv(1024).decode("utf-8")
