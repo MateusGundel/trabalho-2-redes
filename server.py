@@ -3,7 +3,10 @@ import logging
 import os
 import shutil
 import socket
+import threading
+import time
 
+from util import mail
 from util import utils
 
 
@@ -13,18 +16,19 @@ class ReceiverServer:
         self.port = port
         self.base_path = 'backup'
         self.user_path = 'default'
+        self.info_sent_to_email = []
 
     def serve(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
-            print("server Started")
+            logging.info("server Started")
             # aceita até 10 conexões
             s.listen(10)
 
             while True:
                 conn, addr = s.accept()
                 with conn:
-                    print("Connection from: " + str(addr))
+                    logging.info("Connection from: " + str(addr))
                     full_data = json.loads(conn.recv(1024).decode("utf-8"))
                     # recebe um usuário e uma estrutura de pastas.
                     user = full_data['user']
@@ -83,10 +87,17 @@ class ReceiverServer:
             else:
                 # se já existe o arquivo ou o tamanho do arquivo é diferente do enviado
                 # requisita o arquivo ao client
-                if (not os.path.exists(os.path.join(self.user_path, root, item)) or
-                        os.path.getsize(os.path.join(self.user_path, root, item)) != client_structure[item]):
+                if not os.path.exists(os.path.join(self.user_path, root, item)):
                     logging.info("Making request to file - " + root + "/" + item)
                     self.request_data(conn, os.path.join(root, item), client_structure[item])
+                    self.info_sent_to_email.append(
+                        "O arquivo - " + str(os.path.join(root, item)) + "foi criado em " + str(
+                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path))
+                if os.path.getsize(os.path.join(self.user_path, root, item)) != client_structure[item]:
+                    self.request_data(conn, os.path.join(root, item), client_structure[item])
+                    self.info_sent_to_email.append(
+                        "O arquivo - " + str(os.path.join(root, item)) + "foi alterado em " + str(
+                            time.strftime("%Y-%m-%d %H:%M")) + "na pasta " + str(self.user_path))
 
     def find_excluded_files(self, client_structure, local_structure, root):
         # itera sobre a strutura de pastas
@@ -94,14 +105,29 @@ class ReceiverServer:
             # verifica se tem os arquivos no client
             if iten not in client_structure:
                 # se não tem no client, exclui o arquivo
-                if os.path.isfile(os.path.join(self.user_path, root, iten)):
-                    os.remove(os.path.join(self.user_path, root, iten))
+                path = os.path.join(self.user_path, root, iten)
+                if os.path.isfile(path):
+                    self.info_sent_to_email.append(
+                        "O arquivo - " + str(path) + "foi excluído em " + str(
+                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path))
+                    os.remove(path)
                 else:
-                    shutil.rmtree(os.path.join(self.user_path, root, iten))
+                    self.info_sent_to_email.append(
+                        "A pasta - " + str(path) + "foi excluída em " + str(
+                            time.strftime("%Y-%m-%d %H:%M")) + "da pasta " + str(self.user_path))
+                    shutil.rmtree(path)
             else:
                 # se for um dir, tem que verificar dentro das pastas
                 if os.path.isdir(os.path.join(self.user_path, root, iten)):
                     self.find_excluded_files(client_structure[iten], local_structure[iten], os.path.join(root, iten))
+
+    def send_modify_to_email(self):
+        logging.info("Emails started")
+        while True:
+            if self.info_sent_to_email:
+                logging.info("Sending emails")
+                mail.Mail().sendMail(json.dumps(self.info_sent_to_email), "mateus8923@gmail.com")
+            time.sleep(60)
 
 
 if __name__ == "__main__":
@@ -109,6 +135,12 @@ if __name__ == "__main__":
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     try:
-        ReceiverServer().serve()
+        server = ReceiverServer()
+
+        mail_thread = threading.Thread(target=server.send_modify_to_email)
+        server_thread = threading.Thread(target=server.serve)
+        mail_thread.start()
+        server_thread.start()
+
     except KeyboardInterrupt:
         logging.error("Servidor encerrado")
