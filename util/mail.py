@@ -20,6 +20,6 @@ class Mail:
             server.login(gmail_user, gmail_password)
             server.sendmail(gmail_user, destinatario, msg.as_string())
             server.close()
-            print("deu certo o envio do email")
+            print("Email enviado")
         except:
             print('Deu ruim no envio do e-mail')
