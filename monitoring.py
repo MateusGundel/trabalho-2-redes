@@ -4,8 +4,6 @@ import time
 from util import utils
 from util.send_file import Messages
 
-user = "mateus"
-
 
 class MappingFiles:
     def __init__(self, path, user):
@@ -23,13 +21,16 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    # path a ser monitorado
     path = '/home/mateus/update'
+    # pasta de usuário
+    user = 'default'
     mapper = MappingFiles(path, user)
-    mapper.map_and_send()
+
     try:
         while True:
             time.sleep(10)
-            # mapper.map_and_send()
+            mapper.map_and_send()
 
     except KeyboardInterrupt:
         logging.error("Programa encerrado")

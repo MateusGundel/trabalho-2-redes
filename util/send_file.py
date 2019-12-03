@@ -24,5 +24,6 @@ class Messages:
                 except:
                     logging.error("Error ao localizar o arquivo " + str(response))
                 response = s.recv(1024).decode("utf-8")
-                logging.info(response)
-# Massages().send_file("{1:2}", 'gundel')
+                logging.info("Recebeu -- " + response)
+
+            logging.info("Encerrando conexão")
