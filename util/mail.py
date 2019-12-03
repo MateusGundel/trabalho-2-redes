@@ -1,9 +1,11 @@
 import smtplib
 from email.message import EmailMessage
 
+
 class Mail:
     def __init__(self):
         pass
+
     def sendMail(self, menssagem, destinatario):
         gmail_user = 'trabalhoredes2019@gmail.com'
         gmail_password = 'trabalhoredes'
